@@ -7,6 +7,7 @@ import warnings
 from .._utils import flatten, bits_for
 from .. import tracer
 from .ast import *
+from .ast import SCOPED_SYNC_DOMAINS, SCOPED_COMB_DOMAINS
 from .ir import *
 from .cd import *
 from .xfrm import *
@@ -528,6 +529,14 @@ class Module(_ModuleBuilderRoot, Elaboratable):
     def _flush(self):
         while self._ctrl_stack:
             self._pop_ctrl()
+
+    def __enter__(self):
+        SCOPED_SYNC_DOMAINS.append(self.d.sync)
+        SCOPED_COMB_DOMAINS.append(self.d.comb)
+    
+    def __exit__(self, type, value, traceback):
+        SCOPED_SYNC_DOMAINS.pop()
+        SCOPED_COMB_DOMAINS.pop()
 
     def elaborate(self, platform):
         self._flush()

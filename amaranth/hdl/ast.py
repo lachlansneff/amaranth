@@ -10,6 +10,8 @@ from .. import tracer
 from .._utils import *
 from .._unused import *
 
+SCOPED_SYNC_DOMAINS = []
+SCOPED_COMB_DOMAINS = []
 
 __all__ = [
     "Shape", "signed", "unsigned",
@@ -520,6 +522,30 @@ class Value(metaclass=ABCMeta):
             Assignment statement that can be used in combinatorial or synchronous context.
         """
         return Assign(self, value, src_loc_at=1)
+
+    @property
+    def next(self):
+        raise AttributeError("Cannot read the `next` attribute on {!r}".format(self))
+    
+    @next.setter
+    def next(self, value):
+        if len(SCOPED_SYNC_DOMAINS) == 0:
+            raise ValueError("A clock domain scope hasn't been entered yet")
+        cd =  SCOPED_SYNC_DOMAINS[-1]
+
+        cd += self.eq(value)
+
+    @property
+    def assign(self):
+        raise AttributeError("Cannot read the `assign` attribute on {!r}".format(self))
+    
+    @next.setter
+    def assign(self, value):
+        if len(SCOPED_COMB_DOMAINS) == 0:
+            raise ValueError("A clock domain scope hasn't been entered yet")
+        cd = SCOPED_COMB_DOMAINS[-1]
+
+        cd += self.eq(value)
 
     @abstractmethod
     def shape(self):

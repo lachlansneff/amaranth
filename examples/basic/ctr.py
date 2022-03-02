@@ -9,8 +9,10 @@ class Counter(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        m.d.sync += self.v.eq(self.v + 1)
-        m.d.comb += self.o.eq(self.v[-1])
+        with m:
+            self.v.next = self.v + 1
+            self.o.assign = self.v[-1]
+        
         return m
 
 

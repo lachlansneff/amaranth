@@ -1,13 +1,11 @@
 from .. import tracer
-from .ast import Signal
+from .ast import Signal, SCOPED_SYNC_DOMAINS
 
 
 __all__ = ["ClockDomain", "DomainError"]
 
-
 class DomainError(Exception):
     pass
-
 
 class ClockDomain:
     """Synchronous domain.
@@ -82,3 +80,21 @@ class ClockDomain:
         self.clk.name = self._name_for(new_name, "clk")
         if self.rst is not None:
             self.rst.name = self._name_for(new_name, "rst")
+
+    # @classmethod
+    # def scoped_sync(cls):
+    #     if len(SCOPED_SYNC_DOMAINS) == 0:
+    #         raise ValueError("A clock domain scope hasn't been entered yet")
+    #     return SCOPED_SYNC_DOMAINS[-1]
+
+    # @classmethod
+    # def scoped_comb(cls):
+    #     if len(SCOPED_COMB_DOMAINS) == 0:
+    #         raise ValueError("A clock domain scope hasn't been entered yet")
+    #     return SCOPED_COMB_DOMAINS[-1]
+
+    def __enter__(self):
+        SCOPED_SYNC_DOMAINS.append(self)
+
+    def __exit__(self, type, value, traceback):
+        SCOPED_SYNC_DOMAINS.pop()
